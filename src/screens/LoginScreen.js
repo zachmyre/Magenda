@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TouchableOpacity, StyleSheet, View } from 'react-native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Text } from 'react-native-paper';
@@ -11,6 +11,7 @@ import BackButton from '../components/BackButton';
 import { theme } from '../core/theme';
 import { usernameValidator } from '../helpers/usernameValidator';
 import { passwordValidator } from '../helpers/passwordValidator';
+import { getUserFromToken } from '../helpers/getUserFromToken';
 
 export default function LoginScreen({ navigation }) {
   const [username, setUsername] = useState({ value: '', error: '' })
@@ -47,6 +48,20 @@ export default function LoginScreen({ navigation }) {
     });
 
   }
+
+  let user;
+
+  useEffect(async () =>{
+    console.log('using the effect');
+    user = await getUserFromToken();
+    console.log(user);
+    if(user){
+      return navigation.reset({
+        index: 0,
+        routes: [{ name: 'Dashboard' }],
+      })
+    }
+  })
 
   return (
     <Background>
