@@ -1,32 +1,51 @@
-import React, { useState } from 'react'
-import { TouchableOpacity, StyleSheet, View } from 'react-native'
-import { Text } from 'react-native-paper'
-import Background from '../components/Background'
-import Logo from '../components/Logo'
-import Header from '../components/Header'
-import Button from '../components/Button'
-import TextInput from '../components/TextInput'
-import BackButton from '../components/BackButton'
-import { theme } from '../core/theme'
-import { emailValidator } from '../helpers/emailValidator'
-import { passwordValidator } from '../helpers/passwordValidator'
+import React, { useState } from 'react';
+import { TouchableOpacity, StyleSheet, View } from 'react-native';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Text } from 'react-native-paper';
+import Background from '../components/Background';
+import Logo from '../components/Logo';
+import Header from '../components/Header';
+import Button from '../components/Button';
+import TextInput from '../components/TextInput';
+import BackButton from '../components/BackButton';
+import { theme } from '../core/theme';
+import { usernameValidator } from '../helpers/usernameValidator';
+import { passwordValidator } from '../helpers/passwordValidator';
 
 export default function LoginScreen({ navigation }) {
-  const [email, setEmail] = useState({ value: '', error: '' })
+  const [username, setUsername] = useState({ value: '', error: '' })
   const [password, setPassword] = useState({ value: '', error: '' })
 
-  const onLoginPressed = () => {
-    const emailError = emailValidator(email.value)
+  const onLoginPressed = async () => {
+    const usernameError = usernameValidator(username.value)
     const passwordError = passwordValidator(password.value)
-    if (emailError || passwordError) {
-      setEmail({ ...email, error: emailError })
+    if (usernameError || passwordError) {
+      setUsername({ ...username, error: usernameError })
       setPassword({ ...password, error: passwordError })
       return
     }
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'Dashboard' }],
-    })
+    await fetch("http://localhost:8080/user/login", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+        // 'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: JSON.stringify({username: username.value, password: password.value})
+    }).then((res) => res.json()).then(async (data) => {
+      console.log(data);
+      if(data.error){
+        data.message.includes('password') ? setPassword({...password, error: data.message}) : setUsername({...username, error: data.message});
+        return;
+      }
+      await AsyncStorage.setItem('@app:session', data.data).then((storageData) =>{
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Dashboard' }],
+        })
+      })
+
+    });
+
   }
 
   return (
@@ -35,16 +54,13 @@ export default function LoginScreen({ navigation }) {
       <Logo />
       <Header>Login</Header>
       <TextInput
-        label="Email"
+        label="Username"
         returnKeyType="next"
-        value={email.value}
-        onChangeText={(text) => setEmail({ value: text, error: '' })}
-        error={!!email.error}
-        errorText={email.error}
+        value={username.value}
+        onChangeText={(text) => setUsername({ value: text, error: '' })}
+        error={!!username.error}
+        errorText={username.error}
         autoCapitalize="none"
-        autoCompleteType="email"
-        textContentType="emailAddress"
-        keyboardType="email-address"
       />
       <TextInput
         label="Password"
@@ -70,7 +86,7 @@ export default function LoginScreen({ navigation }) {
       </View>
       <View style={styles.row}>
       <TouchableOpacity onPress={() => navigation.replace('RegisterScreen')}>
-          <Text style={styles.link}>Create !</Text>
+          <Text style={styles.link}>Create Account</Text>
         </TouchableOpacity>
       </View>
     </Background>
