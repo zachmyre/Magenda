@@ -12,6 +12,7 @@ import { theme } from '../core/theme';
 import { usernameValidator } from '../helpers/usernameValidator';
 import { passwordValidator } from '../helpers/passwordValidator';
 import { getUserFromToken } from '../helpers/getUserFromToken';
+import API_URL from '../core/environment';
 
 export default function LoginScreen({ navigation }) {
   const [username, setUsername] = useState({ value: '', error: '' })
@@ -25,7 +26,7 @@ export default function LoginScreen({ navigation }) {
       setPassword({ ...password, error: passwordError })
       return
     }
-    await fetch("http://localhost:8080/user/login", {
+    await fetch(`${API_URL}/user/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -61,7 +62,7 @@ export default function LoginScreen({ navigation }) {
         routes: [{ name: 'Dashboard' }],
       })
     }
-  })
+  }, [])
 
   return (
     <Background>

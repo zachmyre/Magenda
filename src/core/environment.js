@@ -1,0 +1,1 @@
+export default API_URL = process.env.environment == 'development' ? 'http://localhost:8080' : 'https://magenda-api.vercel.app'; // development or production

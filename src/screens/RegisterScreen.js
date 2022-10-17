@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { View, StyleSheet, TouchableOpacity } from 'react-native'
 import { Text } from 'react-native-paper'
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import Background from '../components/Background'
 import Logo from '../components/Logo'
 import Header from '../components/Header'
@@ -11,27 +12,61 @@ import { theme } from '../core/theme'
 import { emailValidator } from '../helpers/emailValidator'
 import { passwordValidator } from '../helpers/passwordValidator'
 import { usernameValidator } from '../helpers/usernameValidator'
+import { getUserFromToken } from '../helpers/getUserFromToken';
+import API_URL from '../core/environment';
 
 export default function RegisterScreen({ navigation }) {
   const [username, setUsername] = useState({ value: '', error: '' })
   const [email, setEmail] = useState({ value: '', error: '' })
   const [password, setPassword] = useState({ value: '', error: '' })
 
-  const onSignUpPressed = () => {
-    const usernameError = usernameValidator(name.value)
+  const onSignUpPressed = async () => {
+    const usernameError = usernameValidator(username.value)
     const emailError = emailValidator(email.value)
     const passwordError = passwordValidator(password.value)
-    if (emailError || passwordError || nameError) {
-      setName({ ...name, error: nameError })
+    if (emailError || passwordError || usernameError) {
+      setUsername({ ...username, error: usernameError })
       setEmail({ ...email, error: emailError })
       setPassword({ ...password, error: passwordError })
       return
     }
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'Dashboard' }],
-    })
+
+    await fetch(`${API_URL}/user/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+        // 'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: JSON.stringify({username: username.value, password: password.value, email: email.value})
+    }).then((res) => res.json()).then(async (data) => {
+      console.log(data);
+      if(data.error){
+        data.message.includes('password') ? setPassword({...password, error: data.message}) : setUsername({...username, error: data.message});
+        return;
+      }
+      await AsyncStorage.setItem('@app:session', data.data).then((storageData) =>{
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Dashboard' }],
+        })
+      })
+
+    });
   }
+
+  let user;
+
+  useEffect(async () =>{
+    console.log('using the effect');
+    user = await getUserFromToken();
+    console.log(user);
+    if(user){
+      return navigation.reset({
+        index: 0,
+        routes: [{ name: 'Dashboard' }],
+      })
+    }
+  }, [])
 
   return (
     <Background>

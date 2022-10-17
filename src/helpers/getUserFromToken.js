@@ -1,10 +1,11 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import API_URL from '../core/environment';
 
 export async function getUserFromToken(){
     let user = null;
     await AsyncStorage.getItem("@app:session").then(async (token) => {
         console.log(`Token captured: ${token} `);
-        await fetch("http://localhost:8080/user/token", {
+        await fetch(`${API_URL}/user/token`, {
           method: "POST",
           headers: {
             'Content-Type': 'application/json'
@@ -15,6 +16,7 @@ export async function getUserFromToken(){
           if(userResp.error){
             return;
           }
+          console.log(userResp);
           user = userResp.data;
         })
       })
