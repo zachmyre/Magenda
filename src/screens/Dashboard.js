@@ -1,4 +1,4 @@
-import React, {useEffect } from 'react';
+import React, {useEffect, useState } from 'react';
 import Background from '../components/Background';
 import Logo from '../components/Logo';
 import Header from '../components/Header';
@@ -8,23 +8,26 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getUserFromToken } from '../helpers/getUserFromToken';
 
 export default function Dashboard({ navigation }) {
-  let user;
+  const [user, setUser] = useState(null);
 
-  useEffect(async () =>{
-    console.log('using the effect');
-    user = await getUserFromToken();
-    console.log(user);
+  useEffect(() =>{
+    const getUser = async () => {
+      console.log('using the effect');
+    setUser(await getUserFromToken());
+    console.log('user!!!!', user.username);
     if(!user){
       return navigation.reset({
         index: 0,
         routes: [{ name: 'StartScreen' }],
       })
     }
-  })
+    }
+    getUser();
+  }, [])
   return (
     <Background>
       <Logo />
-      <Header>Welcome 💫</Header>
+      {user != null && <Header>Welcome {user?.username} 💫</Header>}
       <Paragraph>
         Congratulations you are logged in.
       </Paragraph>

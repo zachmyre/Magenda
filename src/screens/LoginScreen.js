@@ -17,6 +17,7 @@ import API_URL from '../core/environment';
 export default function LoginScreen({ navigation }) {
   const [username, setUsername] = useState({ value: '', error: '' })
   const [password, setPassword] = useState({ value: '', error: '' })
+  const [user, setUser] = useState(null);
 
   const onLoginPressed = async () => {
     const usernameError = usernameValidator(username.value)
@@ -50,11 +51,10 @@ export default function LoginScreen({ navigation }) {
 
   }
 
-  let user;
-
-  useEffect(async () =>{
-    console.log('using the effect');
-    user = await getUserFromToken();
+  useEffect(() =>{
+    const getUser = async () => {
+      console.log('using the effect');
+    setUser(await getUserFromToken());
     console.log(user);
     if(user){
       return navigation.reset({
@@ -62,6 +62,8 @@ export default function LoginScreen({ navigation }) {
         routes: [{ name: 'Dashboard' }],
       })
     }
+    }
+    getUser();
   }, [])
 
   return (

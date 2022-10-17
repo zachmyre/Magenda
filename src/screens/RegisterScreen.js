@@ -19,6 +19,7 @@ export default function RegisterScreen({ navigation }) {
   const [username, setUsername] = useState({ value: '', error: '' })
   const [email, setEmail] = useState({ value: '', error: '' })
   const [password, setPassword] = useState({ value: '', error: '' })
+  const [user, setUser] = useState(null);
 
   const onSignUpPressed = async () => {
     const usernameError = usernameValidator(username.value)
@@ -54,11 +55,10 @@ export default function RegisterScreen({ navigation }) {
     });
   }
 
-  let user;
 
   useEffect(async () =>{
     console.log('using the effect');
-    user = await getUserFromToken();
+    setUser(await getUserFromToken());
     console.log(user);
     if(user){
       return navigation.reset({
